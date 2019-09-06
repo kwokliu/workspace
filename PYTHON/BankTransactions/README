@@ -6,7 +6,7 @@ when function is running, data from the file in $ACCT_LIST will be copied to 'te
 if function is crashed, user can recover data from the 'tempData.log' BEFORE running the function again
 if filename is not found from the environment variable, $ACCT_LIST path a file call 'dataFile.log' will be created
 
--i — Account info
+-i â€” Account info
 	Display an enumerated, alphabetical list of account holder, followed by the account number 
 
 	Will allow the user to choose an account by entering the number, or to quit by entering a q
@@ -16,12 +16,12 @@ if filename is not found from the environment variable, $ACCT_LIST path a file c
 	Balance
 	Prompt to return to the list of account holders (so the user has time to read the output)
 	
--h — History
+-h â€” History
 	Display the same account menu as above
 	Allow the user to choose an account by entering the number, or to quit by entering a q
 	If an account is selected, list all the transactions for that account, in chronological order (you may assume the transactions in the input file are in chronological order). You will print, on one line, the date, the type (deposit or withdrawal), and the amount
 	
--t — Insert transaction
+-t â€” Insert transaction
 	Display an enumerated, alphabetical list of account holder, followed by the account number 
 	Display option for create a new account
 		- ********************prompt user to input a account name, a unique 4 digit account number will be randomly generated ************************
@@ -33,6 +33,6 @@ if filename is not found from the environment variable, $ACCT_LIST path a file c
 	*****************User CAN NOT withdraw more than their balance ******************
 	Return to the choose-account menu
 	
--? — Show usage msg and quit
+-? â€” Show usage msg and quit
 
 
