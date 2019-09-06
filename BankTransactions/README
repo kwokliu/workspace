@@ -1,0 +1,38 @@
+READ ME
+Please make sure file path (filename) is in $ACCT_LIST or code will generate dataFile.log under same dir 
+Please make sure dataFile in $ACCT_LIST is editable
+
+when function is running, data from the file in $ACCT_LIST will be copied to 'tempData.log', before exiting the function,'tempData.log' will be renamed to $ACCT_LIST filename and 'tempData.log' will be removed 
+if function is crashed, user can recover data from the 'tempData.log' BEFORE running the function again
+if filename is not found from the environment variable, $ACCT_LIST path a file call 'dataFile.log' will be created
+
+-i — Account info
+	Display an enumerated, alphabetical list of account holder, followed by the account number 
+
+	Will allow the user to choose an account by entering the number, or to quit by entering a q
+	Will then list account info:
+	Account #
+	Account holder's name
+	Balance
+	Prompt to return to the list of account holders (so the user has time to read the output)
+	
+-h — History
+	Display the same account menu as above
+	Allow the user to choose an account by entering the number, or to quit by entering a q
+	If an account is selected, list all the transactions for that account, in chronological order (you may assume the transactions in the input file are in chronological order). You will print, on one line, the date, the type (deposit or withdrawal), and the amount
+	
+-t — Insert transaction
+	Display an enumerated, alphabetical list of account holder, followed by the account number 
+	Display option for create a new account
+		- ********************prompt user to input a account name, a unique 4 digit account number will be randomly generated ************************
+		- ********************when new account is created, a $0.0 will be deposit to the account and will be displayed in the log file******************
+	Then prompt for:
+	Type (withdrawal or deposit), using simple keystrokes (w for or withdrawal d, followed by [enter])
+	The amount
+	Use the current day's date
+	*****************User CAN NOT withdraw more than their balance ******************
+	Return to the choose-account menu
+	
+-? — Show usage msg and quit
+
+
