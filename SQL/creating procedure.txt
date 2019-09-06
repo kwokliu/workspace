@@ -1,0 +1,87 @@
+create or replace PROCEDURE procedure_test (
+  t1 IN 
+    MAIN.NAME%TYPE)
+IS
+  name_1   main.name%TYPE;
+  state_1   main.state%TYPE;
+  zip_1        
+     main.zip%TYPE;
+BEGIN
+  SELECT name,
+         state,
+         ZIP
+    INTO name_1,
+         state_1,
+         zip_1
+    FROM MAIN
+  WHERE base_hin||suffix = t1;
+
+
+END;
+
+
+
+
+
+
+
+
+
+
+
+
+
+create or replace PROCEDURE procedure_test2    --procedure name
+(  t1 IN 
+     MAIN.NAME%TYPE)                --col name
+IS
+  testname   main%ROWTYPE;          --parameter name
+BEGIN
+  SELECT *
+    INTO testname
+    FROM main
+  WHERE NAME = t1;
+END;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+create or replace PROCEDURE test_final
+  (t1 IN MAIN.NAME%TYPE)
+IS
+CURSOR c1 IS SELECT NAME,ADDRESS1,ADDRESS2,CITY,STATE,ZIP,TELEPHONE,FAX  
+FROM main WHERE state = t1;
+testname c1%ROWTYPE ;
+BEGIN
+
+open c1;
+
+loop
+
+    fetch c1 into testname;
+    exit when c1%NOTFOUND;
+  dbms_output.put_line('NAME = '||testname.NAME); 
+  dbms_output.put_line('ADDRESS1 = '||testname.ADDRESS1); 
+  dbms_output.put_line('ADDRESS2 = '||testname.ADDRESS2); 
+  dbms_output.put_line('CITY = '||testname.CITY);
+  dbms_output.put_line('STATE = '||testname.STATE); 
+  dbms_output.put_line('ZIP = '||testname.ZIP); 
+  dbms_output.put_line('TELEPHONE = '||testname.TELEPHONE);
+  dbms_output.put_line('FAX = '||testname.FAX);
+  
+  end loop;
+  
+  close c1;
+  
+END;

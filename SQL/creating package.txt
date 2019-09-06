@@ -1,0 +1,154 @@
+--Create a table in your skinma
+--hv 3 col
+--1st col member ID (number)
+--2nd col costumer number (varchar 200)
+--3rd col customer name (varchar 500)
+--create a package 
+--hv one PROCEDURE
+--one permeter(data)
+--selecte member_ID, member_name, member_grp_name, table:mn_member
+--where create the date (look up the col name)
+
+select * from mn561ph.mn_member;
+
+
+select count(1)
+from TEST_PKG;
+
+
+create or replace PACKAGE test_package AS 
+
+PROCEDURE test_procedure 
+(date_verified IN TIMESTAMP);
+END test_package;
+
+create or replace PACKAGE BODY test_package AS 
+
+    PROCEDURE test_procedure
+    (date_verified IN TIMESTAMP) 
+    AS
+    model_date TIMESTAMP;
+    
+    BEGIN
+      INSERT INTO kop01778.test_pkg (MEMBER_ID, CUSTOMER_NAME, CUSTOMER_NUMBER)
+      SELECT MEMBER_ID, MEMBER_NAME, MEMBER_GRP_NAME 
+      FROM MN561PH.MN_MEMBER
+      WHERE TRUNC(MN561PH.MN_MEMBER.DATE_CREATED) <= date_verified;
+      COMMIT;
+    END test_procedure;
+
+END test_package;
+
+
+
+--You will need to write a package that does the following:
+--1.	The package will take in the following parameters:
+--a.	New Table Name
+--b.	Column Name 1
+--c.	Column Name 2
+--d.	Source table
+--e.	Condition column name 1
+--f.	Condition column name 2
+--g.	Condition 1
+--h.	Condition 2
+--2.	Create table based on the 1a/b/c parameters
+--3.	Insert all records from the query to table created in requirement 2
+
+
+create or replace PACKAGE test_package_2 AS 
+
+PROCEDURE test_procedure 
+(new_table IN VARCHAR2, 
+    col_name_1 IN VARCHAR2, 
+    col_name_2 IN VARCHAR2, 
+    source_table IN VARCHAR2, 
+    condition_col_name_1 IN VARCHAR2,
+    condition_col_name_2 IN VARCHAR2,
+    value_of_con_1 IN VARCHAR2,
+    value_of_con_2 IN VARCHAR2);
+END test_package_2;
+
+
+create or replace PACKAGE BODY test_package_2 AS 
+
+    PROCEDURE test_procedure_2
+    (new_table IN VARCHAR2, 
+    col_name_1 IN VARCHAR2, 
+    col_name_2 IN VARCHAR2, 
+    source_table IN VARCHAR2, 
+    condition_col_name_1 IN VARCHAR2,
+    condition_col_name_2 IN VARCHAR2,
+    value_of_con_1 IN VARCHAR2,
+    value_of_con_2 IN VARCHAR2)
+    
+    AS
+    n_table VARCHAR2(200);
+    col_1 VARCHAR2(200);
+    col_2 VARCHAR2(200);
+    s_table VARCHAR2(200);
+    condition_col_1 VARCHAR2(200);
+    condition_col_2 VARCHAR2(200);
+    val_of_con_1 VARCHAR2(200);
+    val_of_con_2 VARCHAR2(200);
+    
+    BEGIN
+      
+           
+      
+    END test_procedure_2;
+
+END test_package_2;
+
+
+
+
+
+
+--Assignment: Write a package that will take in a date field as the input parameter and update the result table accordingly.
+--The table will need to only contain the result set from that run.)
+--Tables to use:  MN561PH.MN_MEMBER, MN561PH.MN_ADDRESS, MN561PH.MN_ORGANIZATION_ID
+--Input Parameter: date_updated from MN561PH.MN_MEMBER
+--Result set columns: MN561PH.MN_MEMBER.MEMBER_NAME, MEMBER_GRP_NAME, MEMBER_ID, DATE_UPDATED, DATE_CREATED
+--                    MN561PH.MN_ADDRESS.LINE1, CITY, STATE_PROV, POSTAL_ZIP
+--                    MN561PH.MN_ORGANIZATION_ID.TYPE, IDENTIFIER, EFF_START_DT, EFF_END_DT
+--The requirement is based on the date input, give me all records that were updated on that date or after in the MN_MEMBER table,
+--only the columns listed above to the result table.  Remember, the result table should only contain the new data set for every run.
+--Let me know if you have any questions.
+--Identifier is no null
+
+
+
+create or replace PACKAGE final_test_package AS 
+
+PROCEDURE final_test_procedure 
+(date_verified IN TIMESTAMP);
+
+END final_test_package;
+
+
+create or replace PACKAGE BODY final_test_package AS 
+
+    PROCEDURE final_test_procedure
+    (date_verified IN DATE) 
+    AS
+    model_date DATE;
+    
+    BEGIN
+      execute immediate ('truncate table FINAL_TEST_PKG');
+      INSERT INTO kop01778.FINAL_TEST_PKG (MEMBER_ID, CUSTOMER_NAME,DATE_CREATED, DATE_UPDATED, CUSTOMER_NUMBER, ADDRESS_LINE, CITY, STATE, ZIP, TYPE, IDENTIFIER, START_DATE, END_DATE)
+      SELECT
+      tm.MEMBER_ID, tm.MEMBER_NAME, tm.DATE_CREATED, tm.DATE_UPDATED, tm.MEMBER_GRP_NAME, 
+      ta.LINE1, ta.CITY, ta.STATE_PROV, ta.POSTAL_ZIP,
+      tor.TYPE, tor.IDENTIFIER, tor.START_DATE, tor.END_DATE
+      
+      FROM MN561PH.MN_ORGANIZATION_ID tor
+      INNER JOIN MN561PH.MN_ADDRESS ta
+      ON tor.MEMBER_ID = ta.MEMBER_ID
+      INNER JOIN MN561PH.MN_MEMBER tm
+      ON ta.MEMBER_ID = tm.MEMBER_ID
+      WHERE TRUNC(tm.DATE_UPDATED) >= date_verified
+      and tor.IDENTIFIER is not null;
+      COMMIT;
+    END final_test_procedure;
+
+END final_test_package;

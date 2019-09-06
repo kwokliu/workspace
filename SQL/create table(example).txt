@@ -1,0 +1,276 @@
+--totoal HIN record
+select count(1)
+from COMPANY_hin_master;
+--916295
+
+--HIN record with DEA
+select count(1)
+from COMPANY_hin_master
+where dea is not null;
+--dea count: 123014
+
+--HIN record with DEA and class of trade matches COMPANY record and active
+select --t3.member_id as COMPANY_CUSTOMER_NUMBER,
+       t3.member_name AS COMPANY_CUSTOMER_NUMBER,
+       t3.member_grp_name AS COMPANY_CUSTOMER_NAME,
+       T1.NAME AS HIN_CUSTOMER_NAME,
+       t1.base_hin||T1.SUFFIX AS HIN_NUMBER,
+       t1.hin_assigned_dt as HIN_EFF_START_DT
+    , decode(t1.status,'DE',t1.last_edited_date,'') as HIN_EFF_END_DT,
+       t1.cot as HIN_COT,
+       t5.cot_description as HIN_COT_DESCRIPTION,
+       t4.class_of_trade as COMPANY_COT,
+       t6.display_name as COMPANY_COT_DESCRIPTION,
+       T1.ADDRESS1 AS HIN_ADDRESS,
+       T1.CITY AS HIN_CITY,
+       T1.STATE AS HIN_STATE,
+       T8.LINE1 AS COMPANY_ADDRESS,
+       T8.CITY AS COMPANY_CITY,
+       T8.STATE_PROV AS COMPANY_STATE,
+       t1.dea AS DEA_NUMBER
+from COMPANY_hin_master t1,
+     mn_organization_id t2,
+     mn_member t3,
+     mn_org_cot t4,
+     COMPANY_hin_master_cot t5,
+     mn_dyn_enum_const t6,
+     COMPANY_hintoCOMPANY_cot_lkup t7,
+     MN_ADDRESS T8
+where t1.dea = t2.identifier
+  and t2.type = 'DEA'
+  and t3.member_id = t2.member_id
+  and t3.member_id = t4.org_id
+  and t1.cot = t5.cot_cd
+  and t1.cot = t7.hin_cot
+  and to_char(t4.class_of_trade) = t7.COMPANY_cot
+  and t4.class_of_trade = t6.const_name
+  and t4.eff_end_date > sysdate
+  AND T3.MEMBER_ID = T8.MEMBER_ID
+  AND t8.addr_flags = 1
+  --and t1.status = 'AC'
+order by 1;
+--1578
+
+--total COMPANY customer record count
+select count(1)
+from mn_member;
+--22232
+  
+--total COMPANY customer with DEA count  
+select count(distinct member_id)
+from mn_organization_id
+where type = 'DEA'
+  and identifier is not null;
+ --5552
+
+--records from HIN and COMPANY with same name, same city, same state, 
+--same class of trade and same house number
+select distinct
+      t1.member_name as COMPANY_CUSTOMER_NUMBER
+    , t1.member_grp_name as COMPANY_CUSTOMER_NAME
+    , t2.name as HIN_CUSTOMER_NAME
+    , t2.base_hin||t2.suffix as HIN_NUMBER
+    , t4.class_of_trade as COMPANY_COT
+    , t2.cot as HIN_COT
+    , t2.hin_assigned_dt as HIN_EFF_START_DT
+    , decode(t2.status,'DE',t2.last_edited_date,'') as HIN_EFF_END_DT
+    , t2.address1 as HIN_ADDRESS
+    , t2.city AS HIN_CITY
+    , t2.state AS HIN_STATE
+    , t5.line1 as COMPANY_ADDRESS
+    , t5.city as COMPANY_CITY
+    , t5.state_prov as COMPANY_STATE
+from mn_member t1,
+     COMPANY_hin_master t2,
+     COMPANY_hintoCOMPANY_cot_lkup t3,
+     mn_org_cot t4,
+     mn_address t5
+where t1.member_grp_name = t2.name
+  and t1.member_id = t4.org_id
+  and to_char(t4.class_of_trade) = t3.COMPANY_cot
+  and t2.cot = t3.hin_cot
+  and t1.member_id = t5.member_id
+  and t5.addr_flags = 1
+  and upper(t2.city) = upper(t5.city)
+  and upper(t2.state) = upper(t5.state_prov)
+  and substr(t5.line1,1,instr(t5.line1,' ',1,1)) = substr(t2.address1,1,instr(t2.address1,' ',1,1))
+  --and t2.status = 'AC'
+  ;
+--1022
+
+--account with same first 10 letter in address field, same city, same state
+--same class of trade, but different account name.
+select distinct
+      t1.member_name as COMPANY_CUSTOMER_NUMBER
+    , t1.member_grp_name as COMPANY_CUSTOMER_NAME
+    , t2.name as HIN_CUSTOMER_NAME
+    , t2.base_hin||t2.suffix as HIN_NUMBER
+    , t4.class_of_trade as COMPANY_COT
+    , t2.cot as HIN_COT
+    , t2.hin_assigned_dt as HIN_EFF_START_DT
+    , decode(t2.status,'DE',t2.last_edited_date,'') as HIN_EFF_END_DT
+    , t2.address1 as HIN_ADDRESS
+    , t2.city AS HIN_CITY
+    , t2.state AS HIN_STATE
+    , t5.line1 as COMPANY_ADDRESS
+    , t5.city as COMPANY_CITY
+    , t5.state_prov as COMPANY_STATE
+from mn_member t1,
+     COMPANY_hin_master t2,
+     COMPANY_hintoCOMPANY_cot_lkup t3,
+     mn_org_cot t4,
+     mn_address t5
+where --t1.member_grp_name = t2.name
+  --and 
+  t1.member_id = t4.org_id
+  and to_char(t4.class_of_trade) = t3.COMPANY_cot
+  and t2.cot = t3.hin_cot
+  and t1.member_id = t5.member_id
+  and t5.addr_flags = 1
+  and upper(t2.city) = upper(t5.city)
+  and upper(t2.state) = upper(t5.state_prov)
+  and substr(t5.line1,1,10) = substr(t2.address1,1,10)
+minus
+select distinct
+      t1.member_name as COMPANY_CUSTOMER_NUMBER
+    , t1.member_grp_name as COMPANY_CUSTOMER_NAME
+    , t2.name as HIN_CUSTOMER_NAME
+    , t2.base_hin||t2.suffix as HIN_NUMBER
+    , t4.class_of_trade as COMPANY_COT
+    , t2.cot as HIN_COT
+    , t2.hin_assigned_dt as HIN_EFF_START_DT
+    , decode(t2.status,'DE',t2.last_edited_date,'') as HIN_EFF_END_DT
+    , t2.address1 as HIN_ADDRESS
+    , t2.city AS HIN_CITY
+    , t2.state AS HIN_STATE
+    , t5.line1 as COMPANY_ADDRESS
+    , t5.city as COMPANY_CITY
+    , t5.state_prov as COMPANY_STATE
+from mn_member t1,
+     COMPANY_hin_master t2,
+     COMPANY_hintoCOMPANY_cot_lkup t3,
+     mn_org_cot t4,
+     mn_address t5
+where t1.member_grp_name = t2.name
+  and t1.member_id = t4.org_id
+  and to_char(t4.class_of_trade) = t3.COMPANY_cot
+  and t2.cot = t3.hin_cot
+  and t1.member_id = t5.member_id
+  and t5.addr_flags = 1
+  and upper(t2.city) = upper(t5.city)
+  and upper(t2.state) = upper(t5.state_prov)
+  and substr(t5.line1,1,instr(t5.line1,' ',1,1)) = substr(t2.address1,1,instr(t2.address1,' ',1,1))
+  --and t2.status = 'AC'
+  ;
+
+select const_name, display_name
+from mn_dyn_enum_const
+where ns_id = 401;
+
+select count(1)
+from COMPANY_hin_master
+where status = 'AC';
+--total 916295, Active: 806504
+--with DEA: 123104
+--DEA found in Model N and active HIN: 2078
+--Model N has 5550 customers with DEA assigned
+
+
+select distinct t1.member_name
+    , t1.member_grp_name as COMPANY_ACCOUNT_NAME
+    , t3.class_of_trade as COMPANY_COT_CD
+    , t4.display_name as COMPANY_COT
+    , T2.LINE1 AS COMPANY_ADDRESS
+    , T2.CITY AS COMPANY_CITY
+    , T2.STATE_PROV AS COMPANY_STATE
+    , T5.NAME AS HIN_ACCOUNT_NAME
+    , t5.base_hin || t5.suffix as HIN_NUMBER
+    , T5.ADDRESS1 AS HIN_ADDRESS
+    , T5.CITY AS HIN_CITY
+    , T5.STATE AS HIN_STATE
+    , t5.cot as HIN_COT_CD
+    , t6.cot_description as HIN_COT
+from mn_member t1,
+     mn_address t2,
+     mn_org_cot t3,
+     mn_dyn_enum_const t4,
+     COMPANY_hin_master t5,
+     COMPANY_hin_master_cot t6,
+     COMPANY_hintoCOMPANY_cot_lkup t7
+where t1.member_id = t2.member_id
+  and t2.member_id = t3.org_id
+  and to_char(t3.class_of_trade) = to_char(t4.const_name)
+  and t4.ns_id = 401
+  and upper(t2.city) = t5.city
+  and upper(t2.state_prov) = t5.state
+  and substr(t2.line1,1,instr(t2.line1,' ',1,1)) = substr(t5.address1,1,instr(t5.address1,' ',1,1))
+  and t2.line1 != '1020 FIRST AVE'
+  and t2.addr_flags = 1
+  and t5.cot = t6.cot_cd (+)
+  and t5.cot = t7.hin_cot
+  and to_char(t4.const_name) = t7.COMPANY_cot;
+  
+select instr(address1,1,' ')
+from COMPANY_hin_master;
+
+select *
+from COMPANY_hin_master;
+
+
+select distinct t2.member_name
+from mn_indir_sale_closed t1,
+     mn_member t2
+where t2.member_id = t1.ship_to_cust_id;
+
+select *
+from COMPANY_hin_master;
+
+select distinct 
+      t2.member_name
+    , t2.member_grp_name
+    , t4.name as HIN_Name
+    , t4.base_hin||t4.suffix as HIN_NUMBER
+    , t3.line1
+    , t3.city
+    , t3.state_prov
+from mn_indir_sale_closed t1,
+     mn_member t2,
+     mn_address t3,
+     COMPANY_hin_master t4
+where t2.member_id = t1.parent_distr_id
+  and t2.member_id = t3.member_id
+  and t3.addr_flags = 1
+  and upper(substr(t3.line1,1,10)) = upper(substr(t4.address1,1,10))
+  and upper(t3.city) = upper(t4.city)
+  and upper(t3.state_prov) = upper(t4.state);
+  
+  
+select distinct 
+      t2.member_name as CUSTOMER_NUMBER
+    , t2.member_grp_name as CUSTOMER_NAME
+    , t3.line1 as ADDRESS
+    , t3.city
+    , t3.state_prov
+from mn_indir_sale_closed t1,
+     mn_member t2,
+     mn_address t3
+where t2.member_id = t1.parent_distr_id
+  and t2.member_id = t3.member_id
+  and t3.addr_flags = 1
+minus
+select distinct 
+      t2.member_name
+    , t2.member_grp_name
+    , t3.line1
+    , t3.city
+    , t3.state_prov
+from mn_indir_sale_closed t1,
+     mn_member t2,
+     mn_address t3,
+     COMPANY_hin_master t4
+where t2.member_id = t1.parent_distr_id
+  and t2.member_id = t3.member_id
+  and t3.addr_flags = 1
+  and upper(substr(t3.line1,1,10)) = upper(substr(t4.address1,1,10))
+  and upper(t3.city) = upper(t4.city)
+  and upper(t3.state_prov) = upper(t4.state);

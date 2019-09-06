@@ -1,0 +1,237 @@
+create or replace
+FUNCTION customer_details_func
+    (mbrname  IN VARCHAR2)
+    RETURN VARCHAR2 
+AS
+   cust_name VARCHAR2(100); 
+ BEGIN 
+SELECT member_Grp_name INTO cust_name
+FROM mn_member WHERE  member_name = mbrname ;
+RETURN  cust_name;
+ END;
+
+
+
+
+select test1 ('2GG8J0P00')
+from dual ;
+
+
+
+select test2 ('2GG8J0P00','OKLAHOMA CITY','OK','73118')
+from dual ;
+
+
+
+--hv 4 param
+--1. where col
+--2. table name
+--3. select col  <---- return here 
+--4. value for where col
+
+
+
+
+
+--A1 <- 1 parameter
+create or replace 
+function test1
+(t1 in varchar2)
+RETURN varchar2
+as testname varchar2(100);
+begin
+select NAME
+Into testname
+from MAIN
+where base_hin||suffix = t1;
+return testname;
+end;
+
+
+
+
+
+
+--A2 <- 4 parameter
+create or replace 
+function test2
+(t1 in varchar2,
+t2 in varchar2,
+t3 in varchar2,
+t4 in varchar2)
+RETURN varchar2
+as testname varchar2(100);
+begin
+select NAME
+Into testname
+from MAIN
+where base_hin||suffix = t1
+and city = t2
+and state = t3
+and zip = t4;
+return testname;
+end;
+
+
+
+
+--assignment:
+--Build a function to take in 4 parameters: 
+
+--Param1: select column in select statement
+--Param2: table name
+--Param3: where column name
+--Param4: value for param3
+
+--Return value from Param1.
+
+--A3 <- EXECUTE IMMEDIATE
+declare
+  l_dept    pls_integer := 20;
+  l_nam     varchar2(20);
+  l_loc     varchar2(20);
+ begin
+  execute immediate 'select dname, loc from dept where deptno = :1'
+    into l_nam, l_loc
+    using l_dept ;
+ end;
+
+
+sql_cur := 'select '||in_column||' from
+'||in_owner||'.'||in_table_name||' where row_id =
+'||chr(39)||in_rowid||chr(39);
+  dbms_output.put_line (sql_cur);
+  execute immediate sql_cur into text_c1;
+
+
+
+
+
+
+create or replace 
+function test3
+(t1 in varchar2,
+t2 in varchar2,
+t3 in varchar2,
+t4 in varchar2)
+RETURN varchar2
+as testname varchar2(100);
+sql_test := 'select '||base_hin||' from'||in_owner||'.'||main||' where row_id ='||chr(39)||in_rowid||chr(39);
+  dbms_output.put_line (sql_test);
+  execute immediate sql_test into main;
+begin
+select NAME
+Into testname
+from MAIN
+where base_hin||suffix = t1;
+return testname;
+end;
+
+
+
+
+
+
+
+
+
+
+
+--A4 <- 1 parameter, 8 value
+create or replace function test4
+(t1 in varchar2)
+RETURN varchar2
+as testname varchar2(100);
+CURSOR c1
+   IS
+     SELECT name,
+     ADDRESS1
+     FROM MAIN
+     WHERE  base_hin||suffix = t1;
+begin
+open c1;
+FETCH c1 INTO testname;
+   CLOSE c1;
+
+RETURN testname;
+
+END;
+
+
+base_hin||suffix = t1;
+
+
+create or replace
+PROCEDURE test_final
+  (t1 IN MAIN.NAME%TYPE)
+IS
+CURSOR c1 IS SELECT NAME,ADDRESS1,ADDRESS2,CITY,STATE,ZIP,TELEPHONE,FAX  
+FROM main WHERE state = t1;
+testname c1%ROWTYPE ;
+BEGIN
+open c1;
+loop
+
+    fetch c1 into testname;
+    exit when c1%NOTFOUND;
+  dbms_output.put_line('NAME = '||testname.NAME); 
+  dbms_output.put_line('ADDRESS1 = '||testname.ADDRESS1); 
+  dbms_output.put_line('ADDRESS2 = '||testname.ADDRESS2); 
+  dbms_output.put_line('CITY = '||testname.CITY);
+  dbms_output.put_line('STATE = '||testname.STATE); 
+  dbms_output.put_line('ZIP = '||testname.ZIP); 
+  dbms_output.put_line('TELEPHONE = '||testname.TELEPHONE);
+  dbms_output.put_line('FAX = '||testname.FAX);
+  end loop;
+  close c1;
+  
+END;
+
+
+
+
+CREATE or replace 
+PROCEDURE procedure_test2    --procedure name
+(  t1 IN 
+     MAIN.NAME%TYPE)                --col name
+IS
+  testname   main%ROWTYPE;          --parameter name
+BEGIN
+  SELECT NAME,                      --col's name
+         ADDRESS1,
+         STATE
+    INTO testname
+    FROM main
+  WHERE NAME = t1;
+END;
+
+
+
+
+
+CREATE or replace 
+PROCEDURE procedure_test (
+  t1 IN 
+    MAIN.NAME%TYPE)
+IS
+  name_1   
+     main.name%TYPE;
+  state_1     
+     main.state%TYPE;
+  zip_1        
+     main.zip%TYPE;
+BEGIN
+  SELECT name,
+         state,
+         ZIP
+    INTO name_1,
+         state_1,
+         zip_1
+    FROM MAIN
+  WHERE base_hin||suffix = t1;
+
+
+END;
+
+
+
