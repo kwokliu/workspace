@@ -1,0 +1,77 @@
+create or replace PACKAGE BODY rpc_pkg AS
+
+PROCEDURE mn_get_prices (
+customer_id IN VARCHAR2,
+effective_date IN TIMESTAMP,
+result_prices OUT SYS_REFCURSOR
+)AS
+
+price_records_ids NUMBER_ARRAY;
+product_ids NUMBER_ARRAY;
+member_id NUMBER;
+model_date TIMESTAMP := sysdate;
+max_prices NUMBER := 1;
+num_of_prices NUMBER := 0;
+
+BEGIN
+
+--Find model N costumer
+BEGIN
+SELECT mem.member_id
+INTO member_id
+FROM mn_member mem
+WHERE mem.member_name = customer_id;
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+--dbms_output.put_line('Customer not found... returning NULL result_set');
+result_prices := NULL;
+RETURN;
+END;
+
+--Get list of all products
+SELECT item_id BULK COLLECT INTO product_ids FROM mn_item;
+
+--Lookup prices for product IDs
+price_records_ids := mn_price_master_pkg.lookup_prices(member_id,
+product_ids, effective_date, model_date, max_prices);
+
+--dbms_output.put_line('price_records_ids count: ' || price_records_ids.count);
+for i in 1 .. price_records_ids.count loop
+--dbms_output.put_line('id: '|| price_records_ids(i));
+IF (price_records_ids(i) != -1) then
+num_of_prices := num_of_prices +1;
+end if;
+END LOOP;
+
+--dbms_output.put_line('num of prices found: ' || num_of_prices);
+
+IF (num_of_prices = 0) THEN
+result_prices := NULL;
+RETURN;
+END IF;
+
+--populate log table with results returned to SAP
+insert into RTP_LOG
+SELECT CUSTOMER_ID as CUSTOMER_ID, SUBSTR(PM.PRODUCT_NUM,6,4) || '-' || SUBSTR(PM.PRODUCT_NUM,10,2) as PROD_NUM,
+pm.doc_id as doc_id, sd.struct_doc_name as struct_doc_num, pm.price as price, pm.payment_term as payment_term, li.item_uom as item_uom, sysdate
+FROM mn_price_master_li pm, mn_structured_doc sd, mn_struct_line_item li
+WHERE pm.struct_doc_id = sd.struct_doc_id
+AND pm.line_item_id = li.struct_li_id
+AND pm.pmli_id IN (SELECT COLUMN_VALUE FROM TABLE(price_records_ids))
+and (sd.struct_doc_type != 'WAC' or sd.struct_doc_type is null);
+
+commit;
+
+--Return result set which contains all of the output values
+
+OPEN result_prices FOR
+SELECT CUSTOMER_ID as CUSTOMER_ID, SUBSTR(PM.PRODUCT_NUM,6,4) || '-' || SUBSTR(PM.PRODUCT_NUM,10,2) as PROD_NUM,
+pm.doc_id as doc_id, sd.struct_doc_name as struct_doc_num, pm.price as price, pm.payment_term as payment_term, li.item_uom as item_uom
+FROM mn_price_master_li pm, mn_structured_doc sd, mn_struct_line_item li
+WHERE pm.struct_doc_id = sd.struct_doc_id
+AND pm.line_item_id = li.struct_li_id
+AND pm.pmli_id IN (SELECT COLUMN_VALUE FROM TABLE(price_records_ids))
+and (sd.struct_doc_type != 'WAC' or sd.struct_doc_type is null);
+
+END mn_get_prices;
+END rpc_pkg;
